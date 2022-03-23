@@ -1,78 +1,79 @@
+#include <iostream>
+
 #include "imageIO.h"
-#include "levelset.h"
+#include "levelset_PDE.h"
 
-int main(int argc, char **argv)
-{
-    /**
-     * create an array of frames
-     * 0 = frame
-     * 1 = nextframe
-     */
-    Image images[2] = {};
-
+int main(int argc, char **argv) {
     /**
      * create an array of marked-up frames
      * 0 = frame_markup
      * 1 = nextframe_markup
      */
-    Image markups[2] = {};
-
-    loadtxt("../test_images/frame.txt", images[0]);
-    loadtxt("../test_images/nextframe.txt", images[1]);
-    loadtxt("../test_images/frame_markup.txt", markups[0]);
+    auto markup{new Frame};
+    loadtxt("../images/frame_markup.txt", markup);
 
     // initialize height function phi based on marked-up first frame
     double phi[N][N] = {};
-    init(phi, markups[0]);
+    init(phi, markup);
 
-    /**
-     * convert 0 to 255 unsigned char greyscale values to 0 to 1 double values
-     * NOTE: This is to avoid overflow issues when summing these values over the
-     * desired region
-    */
-    double normals[2][N][N] = {};
-    normalize(images, normals);
+    auto frame0{new Frame};
+    loadtxt("../images/frame.txt", frame0);
 
     double sum[2]{}, area[2]{};
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            if (markups[0][i][j] == 0)
-            {
-                sum[0] += images[0][i][j];
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (markup[i][j] == 0.0) {
+                sum[0] += frame0[i][j];
                 area[0] += 1.0;
-            }
-            else
-            {
-                sum[1] += images[0][i][j];
+            } else {
+                sum[1] += frame0[i][j];
                 area[1] += 1.0;
             }
         }
     }
+    delete[] markup;
+    delete[] frame0;
 
     /**
      * a is the average pixel intensity of R_0 according to image[0]
      * b is the average pixel inesntiy of R_0^c according to image[0]
      */
     double a{}, b{};
-    if (area[0] != 0.0)
-    {
-        a = sum[0]/area[0];
+    if (area[0] != 0.0) {
+        a = sum[0] / area[0];
     }
-    if (area[1] != 0.0)
-    {
-        b = sum[1]/area[1];
+    if (area[1] != 0.0) {
+        b = sum[1] / area[1];
     }
 
-    for (int i = 0; i < ITERATIONS; i++)
-    {
-        update(phi, a, b, images);
+    auto frame1{new Frame};
+    loadtxt("../images/nextframe.txt", frame1);
+
+    std::cout << "load images\n";
+
+    for (int k = 0; k < ITERATIONS; k++) {
+        // try
+        // {
+        //     if (update(phi, a, b, image1) != 1)
+        //     {
+        //         throw "error occurred in algorithm";
+        //     }
+        // }
+        // catch(const char* exception)
+        // {
+        //     std::cerr << "Error: " << exception << '\n';
+        // }
+        update(phi, a, b, frame1);
+        std::cout << "LOOP " << k << "\n\n";
     }
 
-    draw_region(markups[1], phi);
+    delete[] frame1;
 
-    writetxt("nextframe_markup.txt", markups[1]);
+    auto markup1{new Frame};
+    draw_region(markup1, phi);
+    writetxt("../images/nextframe_markup.txt", markup1);
+    std::cout << "draw region\n";
+    delete[] markup1;
 
     return 0;
 }

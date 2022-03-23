@@ -1,11 +1,11 @@
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
-N = 200
+N = 100
 
 img = np.loadtxt("nextframe_markup.txt")
 
-nextframe = Image.open("nextframe.png")
+nextframe = ImageOps.grayscale(Image.open("nextframe.png"))
 nextframe_markup = nextframe.copy()
 
 # data = nextframe.getdata()
