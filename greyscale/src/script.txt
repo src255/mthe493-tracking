@@ -1,0 +1,3 @@
+g++ *.cpp -o ../bin/main
+cd ../bin && main
+cd ../src

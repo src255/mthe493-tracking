@@ -1,22 +1,18 @@
 #include "imageIO.h"
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
-void loadtxt(std::string filename, Image img)
-{
+void loadtxt(std::string filename, Frame frame) {
     std::ifstream in(filename);
-    uchar element{};
+    double element{};
 
-    if (in.is_open())
-    {
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = 0; j < N; j++)
-            {
-                if (in >> element)
-                {
-                    img[i][j] = element;
+    if (in.is_open()) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (in >> element) {
+                    frame[i][j] = static_cast<double>(element) / 255.0;
                 }
             }
         }
@@ -24,22 +20,15 @@ void loadtxt(std::string filename, Image img)
     in.close();
 }
 
-void writetxt(std::string filename, Image img)
-{
+void writetxt(std::string filename, Frame frame) {
     std::ofstream out(filename);
-    if (out.is_open())
-    {
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = 0; j < N; j++)
-            {
-                out << +img[i][j];
-                if (j == N - 1)
-                {
+    if (out.is_open()) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                out << static_cast<int>(frame[i][j]);
+                if (j == N - 1) {
                     out << '\n';
-                }
-                else
-                {
+                } else {
                     out << ' ';
                 }
             }
@@ -48,46 +37,14 @@ void writetxt(std::string filename, Image img)
     out.close();
 }
 
-void normalize(Image imgs[2], double normals[2][N][N])
-{
-    for (int i = 0; i < 2; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            for (int k = 0; k < N; k++)
-            {
-                normals[i][j][k] = imgs[i][j][k]/255.0;
-            }
-        }
-    }
-}
-
-void show(Image img)
-{
+void show(Frame frame) {
     std::cout << '[';
-    for (int i = 0; i < N; i++)
-    {
+    for (int i = 0; i < N; i++) {
         std::cout << '[';
-        for (int j = 0; j < N - 1; j++)
-        {
-            std::cout << +img[i][j] << ", ";
+        for (int j = 0; j < N - 1; j++) {
+            std::cout << +frame[i][j] << ", ";
         }
-        std::cout << +img[i][N - 1] << "]\n";
-    }
-    std::cout << ']';
-}
-
-void show(double array[N][N])
-{
-    std::cout << '[';
-    for (int i = 0; i < N; i++)
-    {
-        std::cout << '[';
-        for (int j = 0; j < N - 1; j++)
-        {
-            std::cout << array[i][j] << ", ";
-        }
-        std::cout << array[i][N - 1] << "]\n";
+        std::cout << +frame[i][N - 1] << "]\n";
     }
     std::cout << ']';
 }
