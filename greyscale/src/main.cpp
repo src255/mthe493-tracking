@@ -3,6 +3,8 @@
 #include "imageIO.h"
 #include "levelset_PDE.h"
 
+#define FF 259
+
 int main(int argc, char **argv) {
     /**
      * create an array of marked-up frames
@@ -10,27 +12,17 @@ int main(int argc, char **argv) {
      * 1 = nextframe_markup
      */
     auto markup{new Frame};
-    loadtxt("../images/frame_markup.txt", markup);
+    loadtxt("../images/frame0_markup.txt", markup);
 
     // initialize height function phi based on marked-up first frame
     double phi[N][N] = {};
     init(phi, markup);
 
     auto frame0{new Frame};
-    loadtxt("../images/frame.txt", frame0);
+    loadtxt("../images/frame0.txt", frame0);
 
     double sum[2]{}, area[2]{};
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            if (markup[i][j] == 0.0) {
-                sum[0] += frame0[i][j];
-                area[0] += 1.0;
-            } else {
-                sum[1] += frame0[i][j];
-                area[1] += 1.0;
-            }
-        }
-    }
+    mean(sum, area, frame0, phi);
     delete[] markup;
     delete[] frame0;
 
@@ -47,33 +39,40 @@ int main(int argc, char **argv) {
     }
 
     auto frame1{new Frame};
-    loadtxt("../images/nextframe.txt", frame1);
+    loadtxt("../images/frame1.txt", frame1);
 
     std::cout << "load images\n";
 
     for (int k = 0; k < ITERATIONS; k++) {
-        // try
-        // {
-        //     if (update(phi, a, b, image1) != 1)
-        //     {
-        //         throw "error occurred in algorithm";
-        //     }
-        // }
-        // catch(const char* exception)
-        // {
-        //     std::cerr << "Error: " << exception << '\n';
-        // }
         update(phi, a, b, frame1);
-        std::cout << "LOOP " << k << "\n\n";
+        // std::cout << "LOOP " << k << "\n\n";
     }
 
-    delete[] frame1;
+    // writetxt("../images/nextframe1_markup.txt", markup1);
+    for (int i = 1; i < FF; i++) {
+        // std::string path{"../images/frame" + std::to_string(i+1) + ".txt"};
+        auto frame{new Frame};
+        copy(frame1, frame);
 
-    auto markup1{new Frame};
-    draw_region(markup1, phi);
-    writetxt("../images/nextframe_markup.txt", markup1);
-    std::cout << "draw region\n";
-    delete[] markup1;
+        std::string path{"../images/frame" + std::to_string(i + 1) + ".txt"};
+        loadtxt(path, frame1);
 
+        init(phi);
+
+        mean(sum, area, frame, phi);
+        if (area[0] != 0.0) {
+            a = sum[0] / area[0];
+        }
+        if (area[1] != 0.0) {
+            b = sum[1] / area[1];
+        }
+
+        for (int k = 0; k < ITERATIONS; k++) {
+            update(phi, a, b, frame1);
+            // std::cout << "LOOP " << k << "\n\n";
+        }
+    }
+    writetxt("../images/final_region.txt", phi);
+    std::cout << "write to text file\n";
     return 0;
 }

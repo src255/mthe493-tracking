@@ -16,28 +16,64 @@ void init(double phi[N][N], Frame frame) {
     }
 }
 
+void init(double phi[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (phi[i][j] >= 0) {
+                phi[i][j] = INSIDE;
+            } else {
+                phi[i][j] = -INSIDE;
+            }
+        }
+    }
+}
+
+void mean(double sum[2], double area[2], Frame frame, double phi[N][N]) {
+    for (int i = 0; i < 2; i++) {
+        sum[i] = 0;
+        area[i] = 0;
+    }
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (phi[i][j] >= 0) {
+                sum[0] += frame[i][j];
+                area[0]++;
+            } else {
+                sum[1] += frame[i][j];
+                area[1]++;
+            }
+        }
+    }
+}
+
 void update(double phi[N][N], double a, double b, Frame frame) {
-    double x{}, y{}, xx{}, yy{}, xy{}, xL{}, xR{}, yD{}, yU{}, x_squared{},
-        y_squared{}, K{};
+    double x{}, y{}, I_x{}, I_y{}, nabla_I{}, xx{}, yy{}, xy{}, xL{}, xR{},
+        yD{}, yU{}, x_squared{}, y_squared{}, K{};
     // std::cout << "initialize doubles\n";
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             // compute x partials
             if (i == 0) {
                 x = (phi[i + 1][j] - phi[i][j]) / 2;
+                I_x = (frame[i + 1][j] - frame[i][j]) / 2;
             } else if (i == N - 1) {
                 x = (phi[i][j] - phi[i - 1][j]) / 2;
+                I_x = (frame[i][j] - frame[i - 1][j]) / 2;
             } else {
                 x = (phi[i + 1][j] - phi[i - 1][j]) / 2;
+                I_x = (frame[i + 1][j] - frame[i - 1][j]) / 2;
             }
 
             // compute y partials
             if (j == 0) {
                 y = (phi[i][j + 1] - phi[i][j]) / 2;
+                I_y = (frame[i][j + 1] - frame[i][j]) / 2;
             } else if (i == N - 1) {
                 y = (phi[i][j] - phi[i][j - 1]) / 2;
+                I_y = (frame[i][j] - frame[i][j - 1]) / 2;
             } else {
                 y = (phi[i][j + 1] - phi[i][j - 1]) / 2;
+                I_y = (frame[i][j + 1] - frame[i][j - 1]) / 2;
             }
             // std::cout << "first order partials\n";
 
@@ -149,8 +185,12 @@ void update(double phi[N][N], double a, double b, Frame frame) {
                 sqrt(pow(std::max(D2, 0.0), 2) + pow(std::min(D1, 0.0), 2) +
                      pow(std::max(D4, 0.0), 2) + pow(std::min(D3, 0.0), 2));
 
+            // compute gradient I
+            nabla_I = sqrt(pow(I_x, 2) + pow(I_y, 2));
+
             // specify the functional F_0
-            double F_0 = 2 * (b - a) * (frame[i][j] - (a + b) / 2);
+            double F_0 =
+                XI * 2 * (b - a) * (frame[i][j] - (a + b) / 2) - ETA * nabla_I;
             // std::cout << "average intensity functional\n";
 
             // update phi
@@ -165,19 +205,20 @@ void update(double phi[N][N], double a, double b, Frame frame) {
             } else if (phi[i][j] < -100) {
                 phi[i][j] = -100;
             }
-            std::cout << "LOOP: (" << i << ", " << j << ")\n";
+            // std::cout << "LOOP: (" << i << ", " << j << ")\n";
         }
+        // std::cout << "LOOP: " << i << '\n';
     }
 }
 
-void draw_region(Frame frame, double phi[N][N]) {
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            if (phi[i][j] >= 0) {
-                frame[i][j] = 0.0;
-            } else {
-                frame[i][j] = 255.0;
-            }
-        }
-    }
-}
+// void draw_region(Frame frame, double phi[N][N]) {
+//     for (int i = 0; i < N; i++) {
+//         for (int j = 0; j < N; j++) {
+//             if (phi[i][j] >= 0) {
+//                 frame[i][j] = 0.0;
+//             } else {
+//                 frame[i][j] = 255.0;
+//             }
+//         }
+//     }
+// }

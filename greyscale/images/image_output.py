@@ -3,9 +3,9 @@ from PIL import Image, ImageOps
 
 N = 100
 
-img = np.loadtxt("nextframe_markup.txt")
+img = np.loadtxt("final_region.txt")
 
-nextframe = ImageOps.grayscale(Image.open("nextframe.png"))
+nextframe = ImageOps.grayscale(Image.open("frame0.png"))
 nextframe_markup = nextframe.copy()
 
 # data = nextframe.getdata()
@@ -19,4 +19,4 @@ for i in range(N):
             new_data.append(255)
 
 nextframe_markup.putdata(new_data)
-nextframe_markup.save("nextframe_markup.png")
+nextframe_markup.save("frame259_final_region_browngreen_50iterations.png")
